@@ -1,0 +1,15 @@
+# requirements.txt
+
+# For the API
+fastapi
+uvicorn[standard]
+
+# For the RAG pipeline
+langchain
+langchain-openai
+langchain-pinecone
+pypdf            # To load PDF files
+tiktoken
+
+# For managing environment variables
+python-dotenv

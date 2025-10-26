@@ -1,0 +1,45 @@
+steps:
+  # 1. Build the Docker container image
+  - name: 'gcr.io/cloud-builders/docker'
+    args:
+      - 'build'
+      - '-t'
+      - 'gcr.io/$PROJECT_ID/${_SERVICE_NAME}:${COMMIT_SHA}'
+      - '.'
+
+  # 2. Push the container image to Google Artifact Registry
+  - name: 'gcr.io/cloud-builders/docker'
+    args:
+      - 'push'
+      - 'gcr.io/$PROJECT_ID/${_SERVICE_NAME}:${COMMIT_SHA}'
+
+  # 3. Deploy the container image to Google Cloud Run
+  - name: 'gcr.io/google.com/cloudsdktool/cloud-sdk'
+    entrypoint: gcloud
+    args:
+      - 'run'
+      - 'deploy'
+      - '${_SERVICE_NAME}' # The name of your Cloud Run service
+      - '--image'
+      - 'gcr.io/$PROJECT_ID/${_SERVICE_NAME}:${COMMIT_SHA}'
+      - '--region'
+      - '${_REGION}' # e.g., 'us-central1'
+      - '--platform'
+      - 'managed'
+      - '--allow-unauthenticated' # Makes the API public
+      # Pass environment variables to the service
+      - '--set-env-vars'
+      - 'OPENAI_API_KEY=${_OPENAI_API_KEY}'
+      - '--set-env-vars'
+      - 'PINECONE_API_KEY=${_PINECONE_API_KEY}'
+      - '--set-env-vars'
+      - 'PINECONE_INDEX_NAME=${_PINECONE_INDEX_NAME}'
+
+# Specify the images to be pushed to the registry
+images:
+  - 'gcr.io/$PROJECT_ID/${_SERVICE_NAME}:${COMMIT_SHA}'
+
+# Define substitutions for your variables
+substitutions:
+  _SERVICE_NAME: 'ai-research-assistant'
+  _REGION: 'us-central1'
